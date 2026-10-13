@@ -65,11 +65,14 @@ pipeline {
 
         stage('Push to Docker Hub') {
             steps {
-                sh '''
-                    echo "$DOCKERHUB_USER_PSW" | docker login -u "$DOCKERHUB_USER_USR" --password-stdin
-                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                    docker push ${IMAGE_NAME}:latest
-                '''
+                // Retry to ride out slow or flaky connections to Docker Hub
+                retry(3) {
+                    sh '''
+                        echo "$DOCKERHUB_USER_PSW" | docker login -u "$DOCKERHUB_USER_USR" --password-stdin
+                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                        docker push ${IMAGE_NAME}:latest
+                    '''
+                }
             }
         }
 
