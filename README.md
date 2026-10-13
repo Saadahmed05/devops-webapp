@@ -116,3 +116,11 @@ created automatically, so there is no setup wizard.
 - Zero-downtime rolling updates (`maxUnavailable: 0`) with readiness and liveness probes
 - Automatic `rollout undo` if the deployment fails
 - Horizontal Pod Autoscaler (2–6 pods at 70% CPU; needs metrics-server)
+
+## Screenshots
+
+| GitHub Actions | Jenkins |
+|---|---|
+| ![GitHub Actions](docs/screenshots/actions.png) | ![Jenkins](docs/screenshots/jenkins.png) |
+| **Docker Hub** | **Kubernetes** |
+| ![Docker Hub](docs/screenshots/dockerhub.png) | ![kubectl](docs/screenshots/kubectl.png) |
