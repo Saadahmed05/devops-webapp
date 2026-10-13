@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-webapp
+  namespace: devops-webapp
+  labels:
+    app: devops-webapp
+spec:
+  replicas: 3
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: devops-webapp
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: devops-webapp
+    spec:
+      containers:
+        - name: web
+          # CI/CD pipelines replace this with <dockerhub-user>/devops-webapp:<build-tag>
+          # via `kubectl set image`. For a local cluster, build it as devops-webapp:latest.
+          image: devops-webapp:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: APP_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: devops-webapp-config
+                  key: APP_VERSION
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false

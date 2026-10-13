@@ -1,0 +1,52 @@
+# Jenkins Configuration as Code (JCasC). Values in ${...} come from jenkins/.env
+jenkins:
+  systemMessage: "DevOps Web App - CI/CD with Jenkins, Docker and Kubernetes"
+  numExecutors: 2
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "${JENKINS_ADMIN_ID}"
+          password: "${JENKINS_ADMIN_PASSWORD}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: true   # anyone on this PC can view builds; only the admin can run/configure
+
+unclassified:
+  location:
+    url: "http://localhost:8080/"
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: "dockerhub-creds"
+              description: "Docker Hub"
+              username: "${DOCKERHUB_USERNAME}"
+              password: "${DOCKERHUB_TOKEN}"
+          - file:
+              scope: GLOBAL
+              id: "kubeconfig"
+              description: "Docker Desktop Kubernetes"
+              fileName: "kubeconfig"
+              secretBytes: "${readFileBase64:/run/secrets/kubeconfig}"
+
+jobs:
+  - script: >
+      pipelineJob('devops-webapp') {
+        description('Containerized web app: test, build, push to Docker Hub, deploy to Kubernetes')
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote { url('${GITHUB_REPO_URL}') }
+                branch('*/main')
+              }
+            }
+            scriptPath('Jenkinsfile')
+            lightweight(true)
+          }
+        }
+      }

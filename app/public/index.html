@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevOps Web App</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; color: #1f2933; background: #f5f7fa; }
+    h1 { margin-bottom: 4px; }
+    .card { background: #fff; border-radius: 10px; padding: 20px; margin: 16px 0; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .badges span { display: inline-block; background: #e4e7eb; border-radius: 12px; padding: 3px 10px; margin: 2px; font-size: 13px; }
+    table td { padding: 2px 12px 2px 0; }
+    form { display: flex; gap: 8px; }
+    input { flex: 1; padding: 8px; border: 1px solid #cbd2d9; border-radius: 6px; }
+    button { padding: 8px 14px; border: 0; border-radius: 6px; background: #2563eb; color: #fff; cursor: pointer; }
+    li { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; }
+    li button { background: #dc2626; padding: 2px 10px; }
+  </style>
+</head>
+<body>
+  <h1>Containerized Web App</h1>
+  <p>Automated CI/CD with Docker, GitHub Actions, Jenkins and Kubernetes.</p>
+  <div class="badges"><span>Docker</span><span>GitHub Actions</span><span>Jenkins</span><span>Kubernetes</span></div>
+
+  <div class="card">
+    <h3>Deployment info</h3>
+    <table id="info"><tr><td>Loading...</td></tr></table>
+  </div>
+
+  <div class="card">
+    <h3>Tasks</h3>
+    <form id="form"><input id="title" placeholder="New task" required /><button>Add</button></form>
+    <ul id="tasks" style="list-style:none;padding:0"></ul>
+  </div>
+
+  <script>
+    async function loadInfo() {
+      const info = await (await fetch('/api/info')).json();
+      document.getElementById('info').innerHTML = Object.entries(info)
+        .map(([k, v]) => `<tr><td><b>${k}</b></td><td>${v}</td></tr>`).join('');
+    }
+    async function loadTasks() {
+      const tasks = await (await fetch('/api/tasks')).json();
+      const ul = document.getElementById('tasks');
+      ul.innerHTML = '';
+      tasks.forEach((t) => {
+        const li = document.createElement('li');
+        li.textContent = t.title;
+        const del = document.createElement('button');
+        del.textContent = 'Delete';
+        del.onclick = async () => { await fetch('/api/tasks/' + t.id, { method: 'DELETE' }); loadTasks(); };
+        li.appendChild(del);
+        ul.appendChild(li);
+      });
+    }
+    document.getElementById('form').onsubmit = async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('title');
+      await fetch('/api/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: input.value }) });
+      input.value = '';
+      loadTasks();
+    };
+    loadInfo(); loadTasks();
+  </script>
+</body>
+</html>
