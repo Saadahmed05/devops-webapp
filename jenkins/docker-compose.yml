@@ -1,4 +1,4 @@
-# Start Jenkins locally:  cd jenkins && docker compose up -d --build  ->  http://localhost:8080
+# Start Jenkins locally:  cd jenkins && docker compose up -d --build  ->  http://localhost:8090
 # Before starting: copy .env.example to .env and fill in your own values.
 # Jenkins is fully configured by casc.yaml (admin user, credentials, pipeline job) - no setup wizard.
 services:
@@ -8,7 +8,7 @@ services:
     container_name: jenkins
     user: root            # lets Jenkins use the host Docker socket (fine for a lab; don't do this in production)
     ports:
-      - "127.0.0.1:8080:8080"   # only reachable from this PC
+      - "127.0.0.1:8090:8080"   # only reachable from this PC
     env_file: .env
     environment:
       - CASC_JENKINS_CONFIG=/var/jenkins_home/casc/jenkins.yaml

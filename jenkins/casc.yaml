@@ -14,7 +14,7 @@ jenkins:
 
 unclassified:
   location:
-    url: "http://localhost:8080/"
+    url: "http://localhost:8090/"
 
 credentials:
   system:
@@ -37,6 +37,13 @@ jobs:
   - script: >
       pipelineJob('devops-webapp') {
         description('Containerized web app: test, build, push to Docker Hub, deploy to Kubernetes')
+        properties {
+          pipelineTriggers {
+            triggers {
+              pollSCM { scmpoll_spec('H/2 * * * *') }
+            }
+          }
+        }
         definition {
           cpsScm {
             scm {

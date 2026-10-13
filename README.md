@@ -103,9 +103,9 @@ created automatically, so there is no setup wizard.
    ```bash
    cd jenkins && docker compose up -d --build
    ```
-4. Open http://localhost:8080, log in, open the **devops-webapp** job and click **Build Now**.
+4. Open http://localhost:8090, log in, open the **devops-webapp** job and click **Build Now**.
    Stages: Checkout → Install & Test → Build Docker Image → Smoke Test → Push to Docker Hub → Deploy to Kubernetes.
-   After the first build, Jenkins polls GitHub every 5 minutes and builds automatically on new commits.
+   After the first build, Jenkins polls GitHub every 2 minutes and builds automatically on new commits.
 
 ## Pipeline features
 
