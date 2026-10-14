@@ -36,10 +36,48 @@ jobs:
           name: coverage
           path: app/coverage
 
+  # ---------------- 1b. UI tests with Selenium ----------------
+  ui-tests:
+    name: UI Tests (Selenium)
+    needs: test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - run: npm ci
+
+      - name: Start the app
+        run: |
+          npm start &
+          for i in $(seq 1 15); do curl -fs http://localhost:3000/health && exit 0; sleep 1; done
+          exit 1
+
+      - name: Run Selenium tests (headless Chrome)
+        env:
+          APP_URL: http://localhost:3000
+          BROWSER: chrome
+          SCREENSHOT_DIR: selenium-screenshots
+        run: npm run test:ui
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: selenium-screenshots
+          path: app/selenium-screenshots
+
   # ---------------- 2. Build & push Docker image ----------------
   docker:
     name: Docker Build & Push
-    needs: test
+    needs: [test, ui-tests]
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
     outputs:

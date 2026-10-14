@@ -63,6 +63,40 @@ pipeline {
             }
         }
 
+        stage('UI Tests (Selenium)') {
+            // Runs the new image and a Selenium Chrome browser on a private Docker network,
+            // joins Jenkins to that network, and drives the real UI with selenium-webdriver.
+            environment {
+                E2E_NET      = "e2e-${env.BUILD_NUMBER}"
+                E2E_APP      = "e2e-app-${env.BUILD_NUMBER}"
+                E2E_SELENIUM = "e2e-selenium-${env.BUILD_NUMBER}"
+            }
+            steps {
+                sh '''
+                    docker network create ${E2E_NET}
+                    docker run -d --name ${E2E_APP} --network ${E2E_NET} --network-alias app ${IMAGE_NAME}:${IMAGE_TAG}
+                    docker run -d --name ${E2E_SELENIUM} --network ${E2E_NET} --network-alias selenium --shm-size=2g selenium/standalone-chrome:latest
+                    docker network connect ${E2E_NET} $(hostname)
+                    for i in $(seq 1 60); do
+                      curl -fs http://selenium:4444/status | grep -q '"ready": *true' && break
+                      sleep 2
+                    done
+                '''
+                dir('app') {
+                    sh 'SELENIUM_REMOTE_URL=http://selenium:4444 APP_URL=http://app:3000 BROWSER=chrome npm run test:ui'
+                }
+            }
+            post {
+                always {
+                    sh '''
+                        docker network disconnect ${E2E_NET} $(hostname) || true
+                        docker rm -f ${E2E_APP} ${E2E_SELENIUM} || true
+                        docker network rm ${E2E_NET} || true
+                    '''
+                }
+            }
+        }
+
         stage('Push to Docker Hub') {
             steps {
                 // Retry to ride out slow or flaky connections to Docker Hub

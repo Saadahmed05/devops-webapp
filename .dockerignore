@@ -7,3 +7,4 @@ jenkins
 Jenkinsfile
 *.md
 **/tests
+**/e2e

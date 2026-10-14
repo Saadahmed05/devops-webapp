@@ -5,7 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "test": "jest --ci --coverage"
+    "test": "jest --ci --coverage",
+    "test:ui": "jest --ci --runInBand --testPathIgnorePatterns=/node_modules/ -- e2e"
   },
   "engines": {
     "node": ">=20"
@@ -15,9 +16,14 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
+    "selenium-webdriver": "^4.51.0",
     "supertest": "^7.0.0"
   },
   "jest": {
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/e2e/"
+    ]
   }
 }
