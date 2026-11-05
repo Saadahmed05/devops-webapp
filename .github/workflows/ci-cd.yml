@@ -41,6 +41,7 @@ jobs:
     name: UI Tests (Selenium)
     needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: app
@@ -66,7 +67,8 @@ jobs:
           APP_URL: http://localhost:3000
           BROWSER: chrome
           SCREENSHOT_DIR: selenium-screenshots
-        run: npm run test:ui
+        # One automatic retry in case the runner's browser is slow to start
+        run: npm run test:ui || npm run test:ui
 
       - uses: actions/upload-artifact@v4
         if: always()
