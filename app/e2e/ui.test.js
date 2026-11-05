@@ -40,9 +40,14 @@ beforeAll(async () => {
 
 afterEach(async () => {
   if (!SCREENSHOT_DIR || !driver) return;
-  fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
-  const name = expect.getState().currentTestName.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
-  fs.writeFileSync(path.join(SCREENSHOT_DIR, `${name}.png`), await driver.takeScreenshot(), 'base64');
+  // Screenshots are evidence only: never let a slow screenshot fail a test
+  try {
+    fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
+    const name = expect.getState().currentTestName.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+    fs.writeFileSync(path.join(SCREENSHOT_DIR, `${name}.png`), await driver.takeScreenshot(), 'base64');
+  } catch (err) {
+    console.warn(`Screenshot skipped: ${err.message}`);
+  }
 });
 
 afterAll(async () => {
